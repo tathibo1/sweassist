@@ -12,7 +12,6 @@ ASSISTANT_ID = os.getenv("OPENAI_ASSISTANT_ID")
 client = OpenAI()
 thread = client.beta.threads.create()
 console = Console()
-line_break = "--------------------------------------------------------"
 
 while True:
   console.print(f"\nPrompt >>> ", style="bright_green", end='')
