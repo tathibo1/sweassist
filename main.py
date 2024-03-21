@@ -38,6 +38,7 @@ class SweAssist():
     return self
 
 
+  # TODO: can this be done without needing to press enter with an empty line?
   def _get_user_input_multi_line(self):
     input_lines = []
     while True:
@@ -87,6 +88,7 @@ class SweAssist():
     return self
 
 
+  # TODO: print partial stream periodically
   def print_response(self):
     if self.stream_handler.buffer != '':
       console.print(
