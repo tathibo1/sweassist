@@ -6,17 +6,21 @@ class EventHandler(AssistantEventHandler):
     super().__init__()
     self.buffer = ""
 
+
   @override
   def on_text_created(self, text) -> None:
     pass
-        
+
+
   @override
   def on_text_delta(self, delta, snapshot):
     self.buffer += delta.value
-      
+
+
   def on_tool_call_created(self, tool_call):
     self.buffer += tool_call.type
-  
+
+
   def on_tool_call_delta(self, delta, snapshot):
     if delta.type == 'code_interpreter':
       if delta.code_interpreter.input:
