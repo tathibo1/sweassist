@@ -2,25 +2,30 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from oai_stream import EventHandler
 from enum import Enum
+import textwrap
+import os
+from dotenv import load_dotenv
 
 class SweAssistInputModes(Enum):
     SINGLE_LINE = 's'
     MULTI_LINE = 'm'
 
-# TODO: provide the ability to read files
+
 class SweAssist():
-    def __init__(self, client, thread, console, assistant_id) -> None:
+    def __init__(self, client, thread, console) -> None:
+        load_dotenv()
         self.stream_handler = EventHandler()
         self.client = client
         self.thread = thread
         self.user_input = ''
         self.input_mode = SweAssistInputModes.SINGLE_LINE.value
         self.console = console
-        self.assistant_id = assistant_id
+        self.assistant_id = os.getenv("OPENAI_ASSISTANT_ID")
+        self.prompt_prepend = os.getenv("SWEASSIST_PROMPT_PREPEND", default="Prompt")
 
     def prompt_user(self, on_new_line = True):
         maybe_new_line = "\n" if on_new_line else ""
-        self.console.print(f"{maybe_new_line}Prompt \[{self.input_mode}] >>>  ", style="dark_green", end='')
+        self.console.print(f"{maybe_new_line}{self.prompt_prepend} \[{self.input_mode}] >>>  ", style="dark_green", end='')
         return self
 
 
@@ -55,21 +60,35 @@ class SweAssist():
                 self.input_mode = SweAssistInputModes.SINGLE_LINE.value
             self.user_input = ""
         
-        # if self.user_input.lower().startswith("read"): ...
+        # TODO: raw_input + tab completion: https://stackoverflow.com/questions/5637124/tab-completion-in-pythons-raw-input
+        if self.user_input.lower().startswith("\\r "):
+            file_path = self.user_input.split(" ")[1]
+            with open(file_path, 'r') as file:
+                file_contents = file.read()
+                message = textwrap.dedent(f"""
+                    Please keep the following file contents in mind during our conversation.
+                    They are from file {file_path}
+                    Contents of file:
+                """) + file_contents
+                self.console.print(message)
+                self._add_message(message)
+            self.user_input = ""
 
         if self.user_input.strip() != "":
-            self.console.print("...thinking")
+            self.console.print("...")
             return self._query()
     
         return self
 
-
-    def _query(self):
+    def _add_message(self, message: str):
         self.client.beta.threads.messages.create(
             thread_id=self.thread.id,
             role="user",
-            content=self.user_input
+            content=message
         )
+
+    def _query(self):
+        self._add_message(self.user_input)
         with self.client.beta.threads.runs.create_and_stream(
             thread_id=self.thread.id,
             assistant_id=self.assistant_id,

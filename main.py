@@ -5,7 +5,6 @@ from rich.console import Console
 from swe_assist import SweAssist
 
 load_dotenv()
-assistant_id = os.getenv("OPENAI_ASSISTANT_ID")
 
 client = OpenAI()
 thread = client.beta.threads.create()
@@ -13,7 +12,7 @@ console = Console()
 
 
 def main_loop(client, thread, console):
-    sa = SweAssist(client, thread, console, assistant_id)
+    sa = SweAssist(client, thread, console)
     try:
         while True: (
             sa.prompt_user()
