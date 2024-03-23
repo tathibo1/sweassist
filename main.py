@@ -1,10 +1,6 @@
-import os
-from dotenv import load_dotenv
 from openai import OpenAI
 from rich.console import Console
 from swe_assist import SweAssist
-
-load_dotenv()
 
 client = OpenAI()
 thread = client.beta.threads.create()
